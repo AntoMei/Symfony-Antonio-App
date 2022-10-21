@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Moviles{% endblock %}
+{% block body %}
+    <h1>Ficha del movil</h1>
+    {% if movil %}
+        {{ include ('partials/datos_movil.html.twig', {'movil': movil }) }}
+    {% else %}
+        <p>Movil no encontrado</p>
+    {% endif %}
+{% endblock %}
