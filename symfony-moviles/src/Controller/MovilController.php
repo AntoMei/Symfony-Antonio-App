@@ -2,12 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\Marca;
 use App\Entity\Movil;
 use Doctrine\Persistence\ManagerRegistry;
 use LDAP\Result;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Form\MovilType;
 
 class MovilController extends AbstractController
 {
@@ -24,7 +30,104 @@ class MovilController extends AbstractController
 
         9 => ["nombre" => "Samsung Galaxy S22", "capacidad" => "256 GB", "ram" => "8 GB", "precio" => "909€"],
 
-    ];    
+    ];
+    /** 
+    * @Route("/movil/nuevo",  name="movil_nuevo")
+    */  
+    public function nuevo(ManagerRegistry $doctrine, Request $request) {
+        $movil = new Movil();
+
+        $formulario = $this->createForm(MovilType::class, $movil);
+
+        $formulario->handleRequest($request);
+
+        if ($formulario->isSubmitted() && $formulario->isValid()) {
+            $movil = $formulario->getData();
+            $entityManager = $doctrine->getManager();
+            $entityManager->persist($movil);
+            $entityManager->flush();
+            return $this->redirectToRoute('ficha_moviles.html.twig', ["codigo" => $movil->getId()]);
+        }
+        return $this->render('nuevo.html.twig', array(
+            'formulario' => $formulario->createView()
+        ));
+    }   
+    /** 
+    * @Route("/movil/editar/{codigo}",  name="editar_movil",requirements={"codigo"="\d+"})
+    */  
+    public function editar(ManagerRegistry $doctrine, Request $request, $codigo) {
+        $repositorio = $doctrine->getRepository(Movil::class);
+
+        $movil = $repositorio->find($codigo);
+        if ($movil) {
+            $formulario = $this->createForm(MovilType::class, $movil);
+            
+            $formulario->handleRequest($request);
+
+            if ($formulario->isSubmitted() && $formulario->isValid()) {
+                $movil = $formulario->getData();
+                $entityManager = $doctrine->getManager();
+                $entityManager->persist($movil);
+                $entityManager->flush();
+            return $this->redirectToRoute('ficha_moviles', ["codigo" => $movil->getId()]);
+        }
+        return $this->render('nuevo.html.twig', array(
+            'formulario' => $formulario->createView()
+        ));
+    }else{
+        return $this->render('ficha_moviles.html.twig', [
+            'contacto' => NULL
+        ]);
+    }
+}
+    /** 
+    * @Route("/movil/insertarSinMarca",  name="insertar_sin_marca_movil")
+    */  
+    public function insertarSinMarca(ManagerRegistry $doctrine): Response{
+        $entityManager = $doctrine->getManager();
+        $repositorio = $doctrine->getRepository(Marca::class);
+
+        $marca = $repositorio->findOneBy(["nombre" => "Samsung"]);
+
+        $movil = new Movil();
+
+        $movil->setNombre("Inserción de prueba sin marca");
+        $movil->setCapacidad("128 GB");
+        $movil->setRam("4 GB");
+        $movil->setPrecio("800€");
+        $movil->setMarca($marca);
+
+        $entityManager->persist($movil);
+
+        $entityManager->flush();
+        return $this->render('ficha_moviles.html.twig', [
+            'movil' => $movil
+        ]);
+    }
+    /** 
+    * @Route("/movil/insertarConMarca",  name="insertar_con_marca_movil")
+    */ 
+    public function insertarConMarca(ManagerRegistry $doctrine): Response{
+        $entityManager = $doctrine->getManager();
+        $marca = new Marca();
+
+        $marca->setNombre("Samsung");
+        $movil = new Movil();
+
+        $movil->setNombre("Inserción de prueba con marca");
+        $movil->setCapacidad("128 GB");
+        $movil->setRam("6 GB");
+        $movil->setPrecio("400€");
+        $movil->setMarca($marca);
+
+        $entityManager->persist($marca);
+        $entityManager->persist($movil);
+
+        $entityManager->flush();
+        return $this->render('ficha_moviles.html.twig', [
+            'movil' => $movil
+        ]);
+    }
     /** 
     * @Route("/movil/insertar",  name="insertar_movil")
     */ 

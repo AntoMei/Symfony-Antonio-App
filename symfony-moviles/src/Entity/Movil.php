@@ -14,16 +14,40 @@ class Movil
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * (message="El nombre es obligatorio")
+     */
     private ?string $nombre = null;
 
+
     #[ORM\Column(length: 15)]
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * (message="La capacidad es obligatoria")
+     */
     private ?string $capacidad = null;
 
     #[ORM\Column(length: 255)]
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * (message="La ram es obligatoria")
+     */
     private ?string $ram = null;
 
     #[ORM\Column(length: 255)]
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * (message="El precioo es obligatorio")
+     */
     private ?string $precio = null;
+
+    #[ORM\ManyToOne]
+    private ?Marca $marca = null;
 
     public function getId(): ?int
     {
@@ -74,6 +98,18 @@ class Movil
     public function setPrecio(string $precio): self
     {
         $this->precio = $precio;
+
+        return $this;
+    }
+
+    public function getMarca(): ?Marca
+    {
+        return $this->marca;
+    }
+
+    public function setMarca(?Marca $marca): self
+    {
+        $this->marca = $marca;
 
         return $this;
     }
